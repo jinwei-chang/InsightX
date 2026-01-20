@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 顧客回饋洞察儀 - Demo</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Marked.js 用於解析 Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            300: '#d6d3d1',
+                            400: '#a8a29e',
+                            500: '#78716c',
+                            600: '#57534e',
+                            700: '#44403c',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        brand: {
+                            50: '#fff7ed', // Orange-50
+                            100: '#ffedd5', // Orange-100
+                            200: '#fed7aa', // Orange-200
+                            300: '#fdba74', // Orange-300
+                            400: '#fb923c', // Orange-400
+                            500: '#f97316', // Orange-500
+                            600: '#ea580c', // Orange-600
+                        },
+                        accent: {
+                            50: '#fdf2f8', // Pink-50
+                            100: '#fce7f3', // Pink-100
+                            500: '#ec4899', // Pink-500
+                            600: '#db2777', // Pink-600
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'blob': 'blob 7s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- 載入 Inter 字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Global Reset & Typography */
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            color: #44403c;
+            /* Stone-700 */
+            background-color: #fafaf9;
+            /* Stone-50 */
+            line-height: 1.6;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: #1c1917;
+            /* Stone-900 */
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d6d3d1;
+            border-radius: 99px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e;
+        }
+
+        /* Component Classes */
+        .card {
+            background-color: white;
+            border-radius: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f5f5f4;
+            /* Stone-100 */
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            border-color: #e7e5e4;
+            /* Stone-200 */
+            transform: translateY(-2px);
+        }
+
+        /* Glass Navigation */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(231, 229, 228, 0.4);
+            /* Stone-200 alpha */
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #ea580c 0%, #db2777 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .ai-action-btn {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 99px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .ai-reply-btn {
+            background-color: #fff7ed;
+            /* Orange-50 */
+            color: #c2410c;
+            /* Orange-700 */
+            border-color: #ffedd5;
+        }
+
+        .ai-reply-btn:hover {
+            background-color: #fff1f2;
+            color: #be123c;
+            border-color: #fecdd3;
+        }
+
+        .ai-analyze-btn {
+            background-color: #fdf4ff;
+            /* Fuchsia-50 */
+            color: #a21caf;
+            /* Fuchsia-700 */
+            border-color: #f0abfc;
+        }
+
+        .ai-analyze-btn:hover {
+            background-color: #fae8ff;
+            color: #86198f;
+        }
+
+        /* Loaders and Animations */
+        .loader {
+            border: 2px solid rgba(231, 229, 228, 0.5);
+            /* Stone-200 */
+            border-top: 2px solid #ea580c;
+            /* Orange-600 */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Prose Overrides for Markdown */
+        .prose strong {
+            color: #1c1917;
+            font-weight: 700;
+        }
+
+        .prose h3,
+        .prose h4 {
+            color: #292524;
+            font-weight: 700;
+            margin-top: 1.2em;
+        }
+
+        .prose p {
+            margin-bottom: 0.8em;
+            line-height: 1.7;
+            color: #44403c;
+        }
+
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.25em;
+            color: #57534e;
+        }
+
+        .prose blockquote {
+            border-left-color: #f97316;
+            background: #fff7ed;
+            padding: 0.5em 1em;
+            border-radius: 0 8px 8px 0;
+            color: #78716c;
+            font-style: normal;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-orange-100 selection:text-orange-600">
+
+    <!-- 導航列 -->
+    <header class="glass-nav sticky top-0 z-50 transition-all duration-300">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white font-bold shadow-lg shadow-orange-500/20 transform hover:rotate-3 transition-transform">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-xl font-bold text-stone-800 tracking-tight">InsightX <span
+                        class="text-stone-400 font-normal">| 顧客回饋洞察儀</span></h1>
+            </div>
+            <a href="#cta"
+                class="bg-stone-900 hover:bg-stone-800 text-white font-medium px-6 py-2.5 rounded-full transition-all duration-300 shadow-xl shadow-stone-200 hover:-translate-y-0.5">
+                立即試用
+            </a>
+        </nav>
+    </header>
+
+    <!-- 首屏內容 (Hero Section) -->
+    <main class="relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 bg-[#fafaf9]">
+            <div
+                class="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-orange-100/40 rounded-full mix-blend-multiply filter blur-3xl animate-blob">
+            </div>
+            <div
+                class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] bg-pink-100/40 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000">
+            </div>
+            <div
+                class="absolute -bottom-[20%] left-[20%] w-[40%] h-[60%] bg-stone-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000">
+            </div>
+        </div>
+
+        <div class="container mx-auto px-6 py-20 md:py-32">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="text-center md:text-left fade-in-up">
+                    <div
+                        class="inline-flex items-center gap-2 px-4 py-2 mb-8 text-xs font-bold tracking-wider text-orange-700 uppercase bg-orange-50 rounded-full border border-orange-100 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                        2026 餐飲 AI 革命
+                    </div>
+                    <h2 class="text-5xl md:text-6xl font-black tracking-tight leading-[1.1] text-stone-900 mb-8">
+                        別讓數據冷掉。<br>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-pink-600">AI
+                            趁熱為您端上</span><br>
+                        營運洞察。
+                    </h2>
+                    <p
+                        class="text-lg md:text-xl text-stone-600 leading-relaxed mb-10 max-w-xl mx-auto md:mx-0 font-medium">
+                        將散落在 Google、Facebook 的評論轉化為具體的營運策略。只需貼上網址，專屬的 AI 營運顧問立即上工。
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                        <button onclick="document.getElementById('demo-block').scrollIntoView({behavior: 'smooth'})"
+                            class="btn-primary px-8 py-4 text-base shadow-lg shadow-orange-500/20">
+                            開始免費分析
+                        </button>
+                        <button
+                            class="px-8 py-4 text-base font-bold text-stone-600 bg-white border border-stone-200 rounded-2xl hover:bg-stone-50 hover:border-stone-300 transition-all shadow-sm">
+                            觀看示範影片
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 右側影片容器 -->
+                <div class="hidden md:block relative fade-in-up" style="animation-delay: 0.2s;">
+                    <div
+                        class="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-stone-200 border-4 border-white transform rotate-1 hover:rotate-0 transition-all duration-500">
+                        <div class="aspect-video bg-stone-900 relative">
+                            <video controls autoplay muted loop
+                                class="w-full h-full object-cover opacity-90 hover:opacity-100 transition duration-500">
+                                <source
+                                    src="https://imagine-public.x.ai/imagine-public/share-videos/b8ba4c20-a8f6-4449-8b74-66b0e4f987c3.mp4"
+                                    type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                    <!-- 裝飾元素 -->
+                    <div
+                        class="absolute -z-10 -bottom-10 -right-10 w-full h-full border-2 border-stone-200 rounded-[2.5rem]">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 互動式模擬區塊 (Core Functionality Block) -->
+    <section id="demo-block" class="px-6 pb-24 relative z-10 -mt-10">
+        <div class="container mx-auto max-w-6xl">
+            <!-- 玻璃擬態卡片 -->
+            <div
+                class="card p-8 md:p-12 border-0 bg-white/60 backdrop-blur-xl shadow-2xl shadow-stone-200/50 overflow-hidden relative">
+                <!-- 裝飾背景 -->
+                <div
+                    class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-orange-100/50 to-transparent rounded-full blur-3xl -z-10">
+                </div>
+
+                <!-- 標題 -->
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold text-stone-900 mb-3">匯入評論來源</h3>
+                    <p class="text-stone-500 text-lg">AI 將自動整合跨平台數據，生成統一分析報告</p>
+                </div>
+
+                <div class="grid lg:grid-cols-5 gap-10">
+                    <!-- 左側輸入區 -->
+                    <div class="lg:col-span-3 space-y-6">
+                        <!-- Google Input -->
+                        <div class="group">
+                            <label class="block text-sm font-bold text-stone-700 mb-2 ml-1">Google 地圖網址</label>
+                            <div class="relative">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-orange-500">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <input type="text" id="gmb-url"
+                                    class="w-full pl-12 pr-4 py-4 bg-white border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-300 shadow-sm font-medium"
+                                    value="https://share.google/Exmg5ZTEvmMknwuWF">
+                            </div>
+                        </div>
+
+                        <!-- Facebook Input -->
+                        <div class="group opacity-70 hover:opacity-100 transition-opacity">
+                            <label class="block text-sm font-bold text-stone-700 mb-2 ml-1">Facebook 粉絲頁</label>
+                            <div class="relative">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-600">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 2.04C6.5 2.04 2 6.53 2 12.06c0 5.06 3.66 9.25 8.44 10v-7.03h-2.53v-2.96h2.53V9.5c0-2.5 1.5-3.88 3.77-3.88 1.07 0 2.15.19 2.15.19v2.52h-1.28c-1.24 0-1.63.77-1.63 1.57v1.88h2.82l-.44 2.96h-2.38V22.06c4.78-.75 8.44-4.94 8.44-10C22 6.53 17.5 2.04 12 2.04z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <input type="text" id="fb-url"
+                                    class="w-full pl-12 pr-4 py-4 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-sm font-medium"
+                                    value="https://www.facebook.com/example.restaurant">
+                            </div>
+                        </div>
+
+                        <!-- LINE Input -->
+                        <div class="group opacity-70 hover:opacity-100 transition-opacity">
+                            <label class="block text-sm font-bold text-stone-700 mb-2 ml-1">LINE OA / 其他來源</label>
+                            <div class="relative">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-emerald-500">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M20.2 3.8A10.4 10.4 0 0 0 12 2a10.4 10.4 0 0 0-8.2 3.8C2.5 5.5 2 7.7 2 10.1v1.8c0 2.4.5 4.6 1.8 6.3A10.4 10.4 0 0 0 12 22a10.4 10.4 0 0 0 8.2-3.8c1.3-1.7 1.8-3.9 1.8-6.3v-1.8c0-2.4-.5-4.6-1.8-6.3zM12 20.5c-4.9 0-8.8-3.9-8.8-8.6S7.1 3.3 12 3.3s8.8 3.9 8.8 8.6-3.9 8.6-8.8 8.6z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <input type="text" id="line-url"
+                                    class="w-full pl-12 pr-4 py-4 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-300 shadow-sm font-medium"
+                                    value="https://line.me/R/ti/p/@example_oa">
+                            </div>
+                        </div>
+
+                        <button id="analyzeBtn"
+                            class="w-full btn-primary py-4 px-8 text-lg flex items-center justify-center gap-3 mt-6">
+                            <span>✨ 啟動 AI 智能分析</span>
+                        </button>
+                    </div>
+
+                    <!-- 右側說明 -->
+                    <div
+                        class="lg:col-span-2 bg-[#fff7ed] rounded-2xl p-8 border border-orange-100 flex flex-col justify-center relative overflow-hidden">
+                        <div class="relative z-10">
+                            <h4 class="font-bold text-lg text-stone-800 mb-6 flex items-center gap-2">
+                                <span class="bg-orange-500 w-1 h-6 rounded-full"></span>
+                                分析報告包含：
+                            </h4>
+                            <ul class="space-y-5">
+                                <li class="flex items-start">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-orange-500 shadow-sm mr-4 shrink-0 mt-0.5 border border-orange-50">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <strong class="block text-stone-900 text-base">綜合情緒分析</strong>
+                                        <span class="text-xs text-stone-500">一次看懂所有平台的優缺點</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-blue-500 shadow-sm mr-4 shrink-0 mt-0.5 border border-blue-50">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <strong class="block text-stone-900 text-base">SWOT 策略建議</strong>
+                                        <span class="text-xs text-stone-500">AI 擔任您的虛擬營運長</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-accent-500 shadow-sm mr-4 shrink-0 mt-0.5 border border-accent-50">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <strong class="block text-stone-900 text-base">公關 & 行銷助手</strong>
+                                        <span class="text-xs text-stone-500">生成回覆與吸睛行銷貼文</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-xs text-stone-400 mt-8 font-medium tracking-wide">
+                Powered by Google Gemini 2.0 Flash
+            </p>
+        </div>
+    </section>
+
+    <!-- 載入中骨架 (Placeholder) -->
+    <section id="loadingCard" class="hidden px-6 pt-10 pb-10">
+        <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl max-w-5xl mx-auto border border-slate-100">
+            <div class="animate-pulse space-y-8">
+                <div class="h-8 bg-slate-200 rounded-lg w-1/3 mx-auto"></div>
+                <div class="h-4 bg-slate-100 rounded w-1/4 mx-auto"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div class="bg-slate-50 h-64 rounded-2xl"></div>
+                    <div class="bg-slate-50 h-64 rounded-2xl"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 結果區塊 (Results Section) -->
+    <section id="resultsCard" class="hidden px-6 pb-20 fade-in-up">
+        <div class="container mx-auto max-w-6xl">
+
+            <!-- 標題與分頁 -->
+            <div class="card rounded-b-none border-b-0 p-8 md:p-10 text-center relative z-10 shadow-sm">
+                <h3 class="text-3xl font-bold text-stone-900 tracking-tight">分析完成報告</h3>
+                <p id="report-total"
+                    class="text-orange-700 font-semibold mt-3 bg-orange-50 border border-orange-100 inline-block px-4 py-1.5 rounded-full text-sm">
+                    共分析 723 則跨平台評論
+                </p>
+
+                <div class="mt-8 flex justify-center space-x-2 overflow-x-auto pb-2 sm:pb-0 custom-scrollbar">
+                    <button data-platform="overall"
+                        class="platform-tab px-6 py-3 rounded-full text-sm font-bold transition-all bg-stone-900 text-white shadow-lg ring-2 ring-stone-200 ring-offset-2">綜合分析</button>
+                    <button data-platform="google"
+                        class="platform-tab px-6 py-3 rounded-full text-sm font-bold text-stone-500 hover:bg-stone-100 transition-all">Google</button>
+                    <button data-platform="facebook"
+                        class="platform-tab px-6 py-3 rounded-full text-sm font-bold text-stone-500 hover:bg-stone-100 transition-all">Facebook</button>
+                    <button data-platform="line"
+                        class="platform-tab px-6 py-3 rounded-full text-sm font-bold text-stone-500 hover:bg-stone-100 transition-all">LINE
+                        OA</button>
+                </div>
+            </div>
+
+            <!-- 分析卡片內容 -->
+            <div class="card rounded-t-none shadow-xl border-t-0 p-8 md:p-12 relative z-0">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
+
+                    <!-- 左欄：優點 -->
+                    <div class="flex flex-col h-full">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div
+                                class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-2xl font-bold text-stone-900">顧客最愛</h4>
+                                <span class="text-sm text-stone-500">Highlights</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-8 flex-grow">
+                            <!-- 數據條 -->
+                            <div class="group">
+                                <div class="flex justify-between mb-2 text-sm font-bold text-stone-700">
+                                    <span id="good-1-label">餐點美味</span>
+                                    <span id="good-1-value" class="text-emerald-600">32%</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+                                    <div id="good-1-bar"
+                                        class="bg-gradient-to-r from-emerald-400 to-teal-400 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(52,211,153,0.3)]"
+                                        style="width: 32%"></div>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <div class="flex justify-between mb-2 text-sm font-bold text-stone-700">
+                                    <span id="good-2-label">環境舒適</span>
+                                    <span id="good-2-value" class="text-emerald-600">25%</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+                                    <div id="good-2-bar"
+                                        class="bg-gradient-to-r from-emerald-400 to-teal-400 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(52,211,153,0.3)]"
+                                        style="width: 25%"></div>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <div class="flex justify-between mb-2 text-sm font-bold text-stone-700">
+                                    <span id="good-3-label">服務親切</span>
+                                    <span id="good-3-value" class="text-emerald-600">20%</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+                                    <div id="good-3-bar"
+                                        class="bg-gradient-to-r from-emerald-400 to-teal-400 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(52,211,153,0.3)]"
+                                        style="width: 20%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 生成行銷文案按鈕 -->
+                        <div class="mt-10 pt-8 border-t border-stone-100">
+                            <button id="generate-marketing-btn"
+                                class="w-full group bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold py-4 px-4 rounded-2xl transition duration-300 flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                    </path>
+                                </svg>
+                                <span>利用優點生成 FB/IG 行銷貼文</span>
+                            </button>
+                            <p class="text-xs text-center text-stone-400 mt-3 font-medium">AI 將自動整合上述優點撰寫吸睛文案</p>
+                        </div>
+                    </div>
+
+                    <!-- 右欄：待改進 -->
+                    <div>
+                        <div class="flex items-center gap-4 mb-8">
+                            <div
+                                class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shadow-sm border border-orange-100">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-2xl font-bold text-stone-900">待改進</h4>
+                                <span class="text-sm text-stone-500">Pain Points</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div class="group">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center gap-3" id="bad-1-container">
+                                        <span class="text-sm font-bold text-stone-700" id="bad-1-label">出餐速度慢</span>
+                                    </div>
+                                    <span id="bad-1-value" class="text-orange-600 text-sm font-bold">40%</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+                                    <div id="bad-1-bar"
+                                        class="bg-gradient-to-r from-orange-400 to-red-400 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(251,146,60,0.3)]"
+                                        style="width: 40%"></div>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center gap-3" id="bad-2-container">
+                                        <span class="text-sm font-bold text-stone-700" id="bad-2-label">停車不方便</span>
+                                    </div>
+                                    <span id="bad-2-value" class="text-orange-600 text-sm font-bold">18%</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+                                    <div id="bad-2-bar"
+                                        class="bg-gradient-to-r from-orange-400 to-red-400 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(251,146,60,0.3)]"
+                                        style="width: 18%"></div>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center gap-3" id="bad-3-container">
+                                        <span class="text-sm font-bold text-stone-700" id="bad-3-label">價格偏高</span>
+                                    </div>
+                                    <span id="bad-3-value" class="text-orange-600 text-sm font-bold">12%</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+                                    <div id="bad-3-bar"
+                                        class="bg-gradient-to-r from-orange-400 to-red-400 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(251,146,60,0.3)]"
+                                        style="width: 12%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SWOT 分析區塊 -->
+    <section id="professionalAnalysis" class="hidden px-6 pb-20 fade-in-up">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-stone-900">AI 策略洞察</h3>
+                <p class="text-stone-500 mt-3 font-medium">基於數據生成的專業 SWOT 營運建議</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- S: 優勢 -->
+                <div class="card p-8 border-l-4 border-l-emerald-400 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span
+                            class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-black text-xl">S</span>
+                        <h4 class="text-xl font-bold text-stone-900">優勢 Strengths</h4>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-emerald-500 mt-0.5 font-bold">✔</span>
+                            <span><strong>餐點美味 (32%):</strong> 核心產品力強，顧客滿意度高。</span>
+                        </li>
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-emerald-500 mt-0.5 font-bold">✔</span>
+                            <span><strong>環境舒適 (25%):</strong> 提供良好的用餐體驗，有助於提高客單價。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- W: 劣勢 -->
+                <div class="card p-8 border-l-4 border-l-rose-400 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span
+                            class="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 font-black text-xl">W</span>
+                        <h4 class="text-xl font-bold text-stone-900">劣勢 Weaknesses</h4>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-rose-500 mt-0.5 font-bold">⚠</span>
+                            <span><strong>出餐速度慢 (40%):</strong> 營運流程 SOP 存在瓶頸，為最大抱怨點。</span>
+                        </li>
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-rose-500 mt-0.5 font-bold">⚠</span>
+                            <span><strong>停車不方便 (18%):</strong> 地理位置限制，可能流失開車客群。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- O: 機會 -->
+                <div class="card p-8 border-l-4 border-l-blue-400 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span
+                            class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xl">O</span>
+                        <h4 class="text-xl font-bold text-stone-900">機會 Opportunities</h4>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-blue-500 mt-0.5 font-bold">💡</span>
+                            <span><strong>優化流程:</strong> 針對「出餐慢」改善廚房動線或增加人手，可立即提升翻桌率。</span>
+                        </li>
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-blue-500 mt-0.5 font-bold">💡</span>
+                            <span><strong>異業合作:</strong> 與鄰近停車場洽談「用餐折抵停車費」，化解「停車難」的劣勢。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- T: 威脅 -->
+                <div class="card p-8 border-l-4 border-l-amber-400 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span
+                            class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 font-black text-xl">T</span>
+                        <h4 class="text-xl font-bold text-stone-900">威脅 Threats</h4>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-amber-500 mt-0.5 font-bold">⚡</span>
+                            <span><strong>流失尖峰客群:</strong> 「出餐慢」將導致尖峰時段顧客因不耐久候而離開。</span>
+                        </li>
+                        <li class="flex gap-3 text-stone-700">
+                            <span class="text-amber-500 mt-0.5 font-bold">⚡</span>
+                            <span><strong>新客卻步:</strong> 「停車難」與「價格高」的評論，可能使新客在搜尋階段就放棄嘗試。</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- (NEW) 主管 AI 工具箱 -->
+    <section id="manager-tools" class="hidden px-6 pb-24 fade-in-up">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-12">
+                <div
+                    class="inline-flex items-center justify-center p-3 mb-4 bg-accent-50 rounded-2xl text-accent-600 shadow-sm border border-accent-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-3xl font-bold text-stone-900">主管 AI 工具箱</h3>
+                <p class="text-stone-500 mt-3 font-medium">從數據分析到實際行動，AI 幫您完成</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Tool 1: Weekly Plan -->
+                <div
+                    class="card p-8 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform">
+                    <div
+                        class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-500 group-hover:bg-blue-100 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-stone-900 mb-2">生成週行動計畫</h4>
+                    <p class="text-stone-500 text-sm mb-8 flex-grow leading-relaxed">
+                        根據本週的 SWOT 分析，自動規劃下週一到週日的具體改善排程與負責人。
+                    </p>
+                    <button id="btn-weekly-plan"
+                        class="w-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl transition duration-300 shadow-sm">
+                        📋 立即生成
+                    </button>
+                </div>
+
+                <!-- Tool 2: Training Script -->
+                <div
+                    class="card p-8 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform">
+                    <div
+                        class="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center mb-6 text-violet-500 group-hover:bg-violet-100 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-stone-900 mb-2">產生員工培訓劇本</h4>
+                    <p class="text-stone-500 text-sm mb-8 flex-grow leading-relaxed">
+                        針對「出餐慢」等痛點，生成「正確 vs 錯誤」的應對話術，強化員工教育訓練。
+                    </p>
+                    <button id="btn-training-script"
+                        class="w-full bg-white text-violet-600 border border-violet-200 hover:bg-violet-50 font-bold py-3 px-6 rounded-xl transition duration-300 shadow-sm">
+                        🗣️ 產生劇本
+                    </button>
+                </div>
+
+                <!-- Tool 3: Internal Email -->
+                <div
+                    class="card p-8 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform">
+                    <div
+                        class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 text-orange-500 group-hover:bg-orange-100 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-stone-900 mb-2">撰寫內部公告信</h4>
+                    <p class="text-stone-500 text-sm mb-8 flex-grow leading-relaxed">
+                        自動草擬一封給全體員工的內部信，傳達本週重點、改善目標並激勵士氣。
+                    </p>
+                    <button id="btn-internal-email"
+                        class="w-full bg-white text-orange-600 border border-orange-200 hover:bg-orange-50 font-bold py-3 px-6 rounded-xl transition duration-300 shadow-sm">
+                        📧 草擬信件
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 結尾行動呼籲 (CTA) -->
+    <section id="cta" class="relative py-32 overflow-hidden">
+        <!-- 背景 -->
+        <div class="absolute inset-0 bg-stone-900 z-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 opacity-90 z-0"></div>
+        <!-- 裝飾光點 -->
+        <div
+            class="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full mix-blend-screen filter blur-[100px]">
+        </div>
+        <div
+            class="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full mix-blend-screen filter blur-[100px]">
+        </div>
+
+        <div class="container mx-auto px-6 text-center relative z-10">
+            <h3 class="text-4xl md:text-5xl font-black mb-6 text-white tracking-tight leading-tight">
+                聆聽顧客心聲，<br class="md:hidden">從現在開始。
+            </h3>
+            <p class="text-xl text-stone-300 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
+                別再讓寶貴的意見石沉大海。讓 AI 成為您全天候的營運顧問。
+            </p>
+            <button
+                class="bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white font-bold py-5 px-12 rounded-full text-xl transition duration-300 shadow-2xl hover:shadow-orange-500/25 transform hover:-translate-y-1 ring-4 ring-orange-500/20">
+                立即免費試用
+            </button>
+            <p class="mt-8 text-stone-400 text-sm">無需信用卡 · 14 天免費體驗</p>
+        </div>
+    </section>
+
+    <!-- 頁尾 -->
+    <footer class="bg-white border-t border-stone-100 pt-16 pb-8">
+        <div class="container mx-auto px-6 flex flex-col items-center">
+            <div class="flex items-center gap-2 mb-4 opacity-80 grayscale hover:grayscale-0 transition duration-300">
+                <div
+                    class="w-6 h-6 rounded bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                    AI</div>
+                <span class="font-bold text-stone-900">顧客回饋洞察儀</span>
+            </div>
+            <p class="text-stone-400 text-sm">&copy; 2025 AI 顧客回饋洞察儀. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- (Generic) AI Content Modal -->
+    <div id="ai-modal"
+        class="hidden fixed inset-0 bg-stone-900/60 backdrop-blur-md z-[110] flex items-center justify-center p-6 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative transform transition-all duration-300 scale-95 opacity-0 flex flex-col max-h-[85vh] border border-stone-100"
+            id="ai-modal-content">
+            <!-- 關閉按鈕 -->
+            <button id="ai-modal-close-btn"
+                class="absolute top-6 right-6 text-stone-400 hover:text-stone-600 transition-colors bg-stone-50 rounded-full p-2 z-10 hover:bg-stone-100">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+
+            <!-- 標題區 -->
+            <div class="flex items-center gap-3 mb-6 shrink-0">
+                <span
+                    class="bg-gradient-to-br from-violet-500 to-purple-600 text-white p-2.5 rounded-xl shadow-lg shadow-violet-500/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </span>
+                <h4 id="ai-modal-title" class="text-xl font-bold text-stone-800">AI 智能生成</h4>
+            </div>
+
+            <!-- 內容區 -->
+            <div id="ai-content-area"
+                class="prose prose-stone prose-sm bg-stone-50 border border-stone-100 p-6 rounded-2xl min-h-[150px] text-stone-700 whitespace-normal overflow-y-auto custom-scrollbar shadow-inner max-w-none">
+                AI 正在思考中...
+            </div>
+
+            <!-- 底部按鈕 -->
+            <button
+                class="mt-6 w-full bg-stone-900 hover:bg-black text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-stone-200 shrink-0 transform active:scale-[0.98]"
+                onclick="copyAiContent()">
+                複製內容
+            </button>
+        </div>
+    </div>
+
+    <!-- AI 對話框 -->
+    <div id="chat-modal"
+        class="hidden fixed bottom-28 right-5 md:right-10 w-80 md:w-96 h-[60vh] bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col z-[100] overflow-hidden ring-1 ring-stone-900/5">
+        <div class="flex justify-between items-center p-4 border-b border-stone-100 bg-white">
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]">
+                </div>
+                <h4 class="font-bold text-stone-800">AI 策略顧問</h4>
+            </div>
+            <button id="chat-close-btn" class="text-stone-400 hover:text-stone-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+        <div id="chat-log" class="flex-1 p-4 overflow-y-auto space-y-4 bg-stone-50/50 custom-scrollbar">
+            <div class="flex">
+                <div
+                    class="bg-white border border-stone-200 text-stone-800 p-4 rounded-2xl rounded-tl-none max-w-xs shadow-sm text-sm leading-relaxed prose prose-stone prose-sm max-w-none">
+                    <p>您好！我是您的 AI 策略顧問。您可以針對這份報告提出任何問題，例如：「如何改善出餐速度？」</p>
+                </div>
+            </div>
+        </div>
+        <form id="chat-form" class="p-3 border-t border-stone-100 bg-white">
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" placeholder="詢問 AI 建議..."
+                    class="flex-1 w-full px-4 py-3 bg-stone-50 border-0 rounded-xl text-stone-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:bg-white transition-all text-sm placeholder-stone-400">
+                <button type="submit"
+                    class="bg-violet-600 hover:bg-violet-700 text-white p-3 rounded-xl transition duration-300 shadow-md shadow-violet-200 flex items-center justify-center">
+                    <svg class="w-5 h-5 transform rotate-45 -ml-1" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- AI 對話框觸發按鈕 & 提示 -->
+    <div id="chat-hint" class="hidden fixed bottom-28 right-5 md:right-10 w-auto z-[98] fade-in-up">
+        <div
+            class="bg-stone-800 text-white text-sm font-medium px-4 py-2 rounded-xl rounded-br-none shadow-xl mb-2 flex items-center gap-2">
+            <span>👋</span> 點我詢問 AI 策略！
+        </div>
+    </div>
+    <button id="chat-toggle-btn"
+        class="hidden fixed bottom-8 right-5 md:right-10 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white w-14 h-14 rounded-full shadow-xl shadow-violet-500/30 flex items-center justify-center z-[99] transition-all duration-300 hover:scale-110 hover:-translate-y-1 ring-4 ring-white/30 backdrop-blur-md">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+            </path>
+        </svg>
+    </button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loadingCard = document.getElementById('loadingCard');
+            const resultsCard = document.getElementById('resultsCard');
+            const professionalAnalysis = document.getElementById('professionalAnalysis');
+            const managerTools = document.getElementById('manager-tools');
+            const originalBtnHtml = analyzeBtn.innerHTML;
+
+            const chatToggleBtn = document.getElementById('chat-toggle-btn');
+            const chatHint = document.getElementById('chat-hint');
+            const chatModal = document.getElementById('chat-modal');
+            const chatCloseBtn = document.getElementById('chat-close-btn');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatLog = document.getElementById('chat-log');
+
+            const aiModal = document.getElementById('ai-modal');
+            const aiModalContent = document.getElementById('ai-modal-content');
+            const aiModalCloseBtn = document.getElementById('ai-modal-close-btn');
+            const aiContentArea = document.getElementById('ai-content-area');
+            const aiModalTitle = document.getElementById('ai-modal-title');
+            const generateMarketingBtn = document.getElementById('generate-marketing-btn');
+
+            const btnWeeklyPlan = document.getElementById('btn-weekly-plan');
+            const btnTrainingScript = document.getElementById('btn-training-script');
+            const btnInternalEmail = document.getElementById('btn-internal-email');
+
+            const chatHistory = [];
+
+            const systemPrompt = `您是一位專業的 AI 策略顧問。您正在協助一位餐廳老闆分析一份顧客評論報告。報告總結如下：[優點: 餐點美味(32%), 環境舒適(25%), 服務親切(20%)]。[劣勢: 出餐速度慢(40%), 停車不方便(18%), 價格偏高(12%)]。[SWOT分析: 優勢(S)-產品力強, 劣勢(W)-營運流程瓶頸, 機會(O)-優化流程/異業合作, 威脅(T)-流失尖峰客群]。請根據這份報告，用繁體中文、親切且專業的語氣，回答老闆的提問，並提供具體可行的策略建議。您的回覆必須精簡，並限制在100字以內。`;
+
+            analyzeBtn.addEventListener('click', async () => {
+                analyzeBtn.disabled = true;
+                analyzeBtn.innerHTML = `<div class="loader"></div><span class="ml-2">AI 智能分析中...</span>`;
+
+                loadingCard.classList.remove('hidden');
+                resultsCard.classList.add('hidden');
+                professionalAnalysis.classList.add('hidden');
+                managerTools.classList.add('hidden');
+                chatToggleBtn.classList.add('hidden');
+                chatHint.classList.add('hidden');
+
+                loadingCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                loadingCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                const url = document.getElementById('gmb-url').value;
+
+                try {
+                    const response = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: url })
+                    });
+
+                    if (!response.ok) throw new Error('Analysis failed');
+
+                    const result = await response.json();
+
+                    // Check for error in response
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+
+                    // Update reportData with REAL data from backend (not placeholders!)
+                    reportData.overall = {
+                        total: result.total_reviews || "分析完成",
+                        good: result.good || [],
+                        bad: result.bad || []
+                    };
+
+                    // Update the specific platform tab based on detection
+                    if (result.platform && reportData[result.platform.toLowerCase()]) {
+                        reportData[result.platform.toLowerCase()] = reportData.overall;
+                    }
+
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.innerHTML = originalBtnHtml;
+
+                    loadingCard.classList.add('hidden');
+                    resultsCard.classList.remove('hidden');
+                    resultsCard.classList.add('fade-in-up');
+
+                    professionalAnalysis.classList.remove('hidden');
+                    professionalAnalysis.classList.add('fade-in-up');
+
+                    managerTools.classList.remove('hidden');
+                    managerTools.classList.add('fade-in-up');
+
+                    chatToggleBtn.classList.remove('hidden');
+                    chatHint.classList.remove('hidden');
+
+                    updateReportView('overall');
+                } catch (error) {
+                    console.error(error);
+                    analyzeBtn.innerHTML = `分析失敗：${error.message}`;
+                    analyzeBtn.disabled = false;
+                    loadingCard.classList.add('hidden');
+                }
+            });
+
+            // Report data - moved outside analyzeBtn handler
+            const reportData = {
+                overall: {
+                    total: "共分析 723 則跨平台評論",
+                    good: [{ label: "餐點美味", value: 32 }, { label: "環境舒適", value: 25 }, { label: "服務親切", value: 20 }],
+                    bad: [{ label: "出餐速度慢", value: 40 }, { label: "停車不方便", value: 18 }, { label: "價格偏高", value: 12 }]
+                },
+                google: {
+                    total: "共分析 410 則 Google 評論",
+                    good: [{ label: "地點方便", value: 35 }, { label: "餐點美味", value: 30 }, { label: "環境舒適", value: 22 }],
+                    bad: [{ label: "停車不方便", value: 25 }, { label: "出餐速度慢", value: 20 }, { label: "價格偏高", value: 15 }]
+                },
+                facebook: {
+                    total: "共分析 205 則 Facebook 評論",
+                    good: [{ label: "服務親切", value: 40 }, { label: "餐點美味", value: 28 }, { label: "活動優惠多", value: 15 }],
+                    bad: [{ label: "出餐速度慢", value: 30 }, { label: "回覆速度慢", value: 22 }, { label: "價格偏高", value: 10 }]
+                },
+                line: {
+                    total: "共分析 108 則 LINE OA 評論",
+                    good: [{ label: "點餐方便", value: 50 }, { label: "服務親切", value: 30 }, { label: "餐點美味", value: 15 }],
+                    bad: [{ label: "系統常當機", value: 35 }, { label: "優惠券問題", value: 25 }, { label: "客服罐頭", value: 18 }]
+                }
+            };
+
+            const platformTabs = document.querySelectorAll('.platform-tab');
+
+            function updateReportView(platform) {
+                const data = reportData[platform];
+                if (!data) return;
+
+                document.getElementById('report-total').textContent = data.total;
+
+                // Handle DYNAMIC good feedback (up to 3 items)
+                for (let i = 0; i < 3; i++) {
+                    const labelEl = document.getElementById(`good-${i + 1}-label`);
+                    const valueEl = document.getElementById(`good-${i + 1}-value`);
+                    const barEl = document.getElementById(`good-${i + 1}-bar`);
+
+                    if (data.good && data.good[i]) {
+                        labelEl.textContent = data.good[i].label;
+                        valueEl.textContent = `${data.good[i].value}%`;
+                        barEl.style.width = `${data.good[i].value}%`;
+                    } else {
+                        // Hide if no data
+                        labelEl.textContent = '無資料';
+                        valueEl.textContent = '0%';
+                        barEl.style.width = '0%';
+                    }
+                }
+
+                // Handle DYNAMIC bad feedback (up to 3 items)
+                for (let i = 0; i < 3; i++) {
+                    const container = document.getElementById(`bad-${i + 1}-container`);
+                    const valueSpan = document.getElementById(`bad-${i + 1}-value`);
+                    const barDiv = document.getElementById(`bad-${i + 1}-bar`);
+
+                    if (data.bad && data.bad[i]) {
+                        const topic = data.bad[i].label;
+                        const value = data.bad[i].value;
+
+                        container.innerHTML = `
+                        <span class="text-sm font-bold text-slate-700">${topic}</span>
+                        <div class="flex">
+                            <button class="ai-action-btn ai-reply-btn" data-topic="${topic}" title="撰寫回覆">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                <span>回覆</span>
+                            </button>
+                            <button class="ai-action-btn ai-analyze-btn" data-topic="${topic}" title="根源問題分析">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <span>分析</span>
+                            </button>
+                        </div>
+                    `;
+                        valueSpan.textContent = `${value}%`;
+                        barDiv.style.width = `${value}%`;
+                    } else {
+                        // Hide if no data
+                        container.innerHTML = '<span class="text-sm font-bold text-slate-700">無資料</span>';
+                        valueSpan.textContent = '0%';
+                        barDiv.style.width = '0%';
+                    }
+                }
+
+                platformTabs.forEach(tab => {
+                    if (tab.dataset.platform === platform) {
+                        tab.className = 'platform-tab px-6 py-3 rounded-full text-sm font-bold transition-all bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-200 ring-offset-2';
+                    } else {
+                        tab.className = 'platform-tab px-6 py-3 rounded-full text-sm font-bold text-slate-600 hover:bg-slate-100 transition-all';
+                    }
+                });
+            }
+
+            platformTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    updateReportView(tab.dataset.platform);
+                });
+            });
+
+            // --- Generic Modal Logic with Markdown ---
+            function openModal(title, initialContent) {
+                aiModalTitle.textContent = title;
+                // 若內容包含 "AI 正在..." 開頭，表示是載入中訊息，不需解析 Markdown
+                if (initialContent.startsWith("AI 正在")) {
+                    aiContentArea.textContent = initialContent;
+                } else {
+                    aiContentArea.innerHTML = marked.parse(initialContent);
+                }
+                aiModal.classList.remove('hidden');
+                setTimeout(() => {
+                    aiModal.classList.add('opacity-100');
+                    aiModalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+
+            function closeModal() {
+                aiModalContent.classList.remove('scale-100', 'opacity-100');
+                aiModal.classList.remove('opacity-100');
+                setTimeout(() => {
+                    aiModal.classList.add('hidden');
+                }, 300);
+            }
+
+            aiModalCloseBtn.addEventListener('click', closeModal);
+            aiModal.addEventListener('click', (e) => {
+                if (e.target === aiModal) closeModal();
+            });
+
+            // --- AI Button Click Handlers ---
+            document.body.addEventListener('click', async (e) => {
+                const replyBtn = e.target.closest('.ai-reply-btn');
+                if (replyBtn) {
+                    const topic = replyBtn.dataset.topic;
+                    openModal('AI 建議回覆', 'AI 正在分析語意並草擬回覆...');
+                    try {
+                        const reply = await getAiReply(topic);
+                        // 更新內容時解析 Markdown
+                        aiContentArea.innerHTML = marked.parse(reply);
+                    } catch (error) {
+                        console.error("AI Reply error:", error);
+                        aiContentArea.textContent = '抱歉，產生回覆時發生錯誤。請稍後再試。';
+                    }
+                }
+
+                const analyzeBtn = e.target.closest('.ai-analyze-btn');
+                if (analyzeBtn) {
+                    const topic = analyzeBtn.dataset.topic;
+                    openModal('AI 根源問題分析', 'AI 正在深入分析數據與潛在成因...');
+                    try {
+                        const analysis = await getRootCauseAnalysis(topic);
+                        aiContentArea.innerHTML = marked.parse(analysis);
+                    } catch (error) {
+                        console.error("AI Analysis error:", error);
+                        aiContentArea.textContent = '抱歉，分析時發生錯誤。請稍後再試。';
+                    }
+                }
+            });
+
+            if (generateMarketingBtn) {
+                generateMarketingBtn.addEventListener('click', async () => {
+                    const currentStrengths = reportData.overall.good.map(i => i.label).join('、');
+                    openModal('AI 社群行銷貼文', 'AI 正在發想創意並撰寫貼文中...');
+                    try {
+                        const copy = await getMarketingCopy(currentStrengths);
+                        aiContentArea.innerHTML = marked.parse(copy);
+                    } catch (error) {
+                        console.error("Marketing copy error:", error);
+                        aiContentArea.textContent = '抱歉，生成文案時發生錯誤。請稍後再試。';
+                    }
+                });
+            }
+
+            if (btnWeeklyPlan) {
+                btnWeeklyPlan.addEventListener('click', async () => {
+                    const weaknesses = reportData.overall.bad.map(i => i.label).join('、');
+                    openModal('AI 週行動計畫', 'AI 正在為您規劃下週的具體執行排程...');
+                    try {
+                        const plan = await getWeeklyPlan(weaknesses);
+                        aiContentArea.innerHTML = marked.parse(plan);
+                    } catch (error) {
+                        console.error("Weekly plan error:", error);
+                        aiContentArea.textContent = '抱歉，生成計畫時發生錯誤。請稍後再試。';
+                    }
+                });
+            }
+
+            if (btnTrainingScript) {
+                btnTrainingScript.addEventListener('click', async () => {
+                    const mainIssue = reportData.overall.bad[0].label;
+                    openModal('AI 員工培訓劇本', `AI 正在針對「${mainIssue}」撰寫角色扮演劇本...`);
+                    try {
+                        const script = await getTrainingScript(mainIssue);
+                        aiContentArea.innerHTML = marked.parse(script);
+                    } catch (error) {
+                        console.error("Training script error:", error);
+                        aiContentArea.textContent = '抱歉，生成劇本時發生錯誤。請稍後再試。';
+                    }
+                });
+            }
+
+            if (btnInternalEmail) {
+                btnInternalEmail.addEventListener('click', async () => {
+                    const weaknesses = reportData.overall.bad.map(i => i.label).join('、');
+                    const strengths = reportData.overall.good.map(i => i.label).join('、');
+                    openModal('AI 內部公告信', 'AI 正在草擬給全體員工的內部信件...');
+                    try {
+                        const email = await getInternalEmail(strengths, weaknesses);
+                        aiContentArea.innerHTML = marked.parse(email);
+                    } catch (error) {
+                        console.error("Internal email error:", error);
+                        aiContentArea.textContent = '抱歉，生成信件時發生錯誤。請稍後再試。';
+                    }
+                });
+            }
+
+            async function getAiReply(topic) {
+                const response = await fetch('/api/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic })
+                });
+                const data = await response.json();
+                return data.reply;
+            }
+
+            async function getRootCauseAnalysis(topic) {
+                const response = await fetch('/api/analyze-issue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic })
+                });
+                const data = await response.json();
+                return data.analysis;
+            }
+
+            async function getMarketingCopy(strengths) {
+                const response = await fetch('/api/marketing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ strengths })
+                });
+                const data = await response.json();
+                return data.copy;
+            }
+
+            async function getWeeklyPlan(weaknesses) {
+                const response = await fetch('/api/weekly-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ weaknesses })
+                });
+                const data = await response.json();
+                return data.plan;
+            }
+
+            async function getTrainingScript(issue) {
+                const response = await fetch('/api/training-script', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ issue })
+                });
+                const data = await response.json();
+                return data.script;
+            }
+
+            async function getInternalEmail(strengths, weaknesses) {
+                const response = await fetch('/api/internal-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ strengths, weaknesses })
+                });
+                const data = await response.json();
+                return data.email;
+            }
+
+            async function callGemini(promptText) {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: promptText }] }] };
+
+                const response = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates[0]) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error("No content generated.");
+                }
+            }
+
+            window.copyAiContent = function () {
+                const textToCopy = aiContentArea.innerText; // 改為 innerText 以保留排版
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                textArea.style.position = 'fixed';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const btn = document.querySelector('#ai-modal-content button:last-child');
+                    const originalText = btn.innerText;
+                    btn.innerText = "已複製！";
+                    btn.classList.add('bg-emerald-600');
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.classList.remove('bg-emerald-600');
+                    }, 2000);
+                } catch (err) {
+                    console.error('無法複製', err);
+                }
+                document.body.removeChild(textArea);
+            }
+
+            // 聊天室邏輯
+            chatToggleBtn.addEventListener('click', () => {
+                chatModal.classList.toggle('hidden');
+                chatToggleBtn.classList.add('hidden');
+                chatHint.classList.add('hidden');
+            });
+            chatCloseBtn.addEventListener('click', () => {
+                chatModal.classList.add('hidden');
+                chatToggleBtn.classList.remove('hidden');
+                chatHint.classList.remove('hidden');
+            });
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+
+                addMessage(userMessage, 'user');
+                chatInput.value = '';
+                addMessage('AI 正在思考中...', 'ai', 'typing-indicator');
+
+                try {
+                    const aiResponse = await getGeminiResponse(userMessage);
+                    const indicator = document.getElementById('typing-indicator');
+                    if (indicator) indicator.remove();
+                    addMessage(aiResponse, 'ai');
+                } catch (error) {
+                    const indicator = document.getElementById('typing-indicator');
+                    if (indicator) indicator.querySelector('div').innerHTML = '連線失敗，請重試。';
+                }
+            });
+
+            function addMessage(message, sender, id = null) {
+                const wrapper = document.createElement('div');
+                const bubble = document.createElement('div');
+                if (id) wrapper.id = id;
+
+                // 加入 prose class 以支援 markdown 樣式
+                bubble.classList.add('p-3', 'rounded-2xl', 'max-w-[85%]', 'text-sm', 'leading-relaxed', 'shadow-sm', 'prose', 'prose-sm', 'max-w-none');
+
+                // 若是使用者訊息，維持原樣；若是 AI 回覆，使用 marked 解析
+                if (sender === 'user') {
+                    bubble.innerHTML = message.replace(/\n/g, '<br>');
+                    wrapper.classList.add('flex', 'justify-end');
+                    bubble.classList.add('bg-gradient-to-br', 'from-orange-500', 'to-pink-500', 'text-white', 'rounded-tr-none');
+                    // 使用者訊息通常不需要 prose 的黑色文字顏色覆蓋，需重置部分樣式
+                    bubble.style.color = 'white';
+                } else {
+                    if (id === 'typing-indicator') {
+                        bubble.innerHTML = message;
+                    } else {
+                        bubble.innerHTML = marked.parse(message);
+                    }
+                    wrapper.classList.add('flex', 'justify-start');
+                    bubble.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-800', 'rounded-tl-none');
+                }
+                wrapper.appendChild(bubble);
+                chatLog.appendChild(wrapper);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+
+            async function getGeminiResponse(userMessage) {
+                // 使用後端 API（支援 Mock 數據）
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: userMessage })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('API 請求失敗');
+                    }
+
+                    const result = await response.json();
+                    return result.reply || '抱歉，無法生成回應。';
+
+                } catch (error) {
+                    console.error('Chat API 錯誤:', error);
+                    throw error;
+                }
+            }
+
+            async function fetchWithBackoff(url, options, retries = 3, delay = 1000) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                    return response;
+                } catch (error) {
+                    if (retries > 0) {
+                        await new Promise(r => setTimeout(r, delay));
+                        return fetchWithBackoff(url, options, retries - 1, delay * 2);
+                    }
+                    throw error;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
